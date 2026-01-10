@@ -1,0 +1,5 @@
+{
+  "name": "ZenPlan: Advanced Productivity & Weekly Goal Tracker",
+  "description": "A sophisticated Todo-list application with task status transitions (Pending, Completed, Missed) and integrated weekly goal tracking, featuring a premium glassmorphic UI.",
+  "requestFramePermissions": []
+}
