@@ -83,7 +83,7 @@ const App: React.FC = () => {
   };
 
   const toggleGoal = (id: string) => {
-    setWeeklyGoals(prev => prev.map(g =>
+    setWeeklyGoals(prev => prev.map(g => 
       g.id === id ? { ...g, isDone: !g.isDone } : g
     ));
   };
@@ -98,7 +98,7 @@ const App: React.FC = () => {
     // Total weighted completion (0 to total tasks)
     const weightedDone = tasks.reduce((acc, curr) => acc + (curr.progress / 100), 0);
     const missedCount = tasks.filter(t => t.status === 'not-completed').length;
-
+    
     // Percentage split for the whole board
     const completedPercent = total > 0 ? Math.round((weightedDone / total) * 100) : 0;
     const remainingPercent = total > 0 ? 100 - completedPercent : 0;
@@ -119,25 +119,78 @@ const App: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] text-slate-800">
-      <Sidebar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
+      <Sidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
         onAddTask={() => setShowTaskModal(true)}
         stats={stats}
       />
-
+      
       <main className="flex-1 flex flex-col overflow-hidden">
         <Header onAddTask={() => setShowTaskModal(true)} />
-
+        
         <div className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar">
           {activeTab === 'home' && (
-            <HomeDashboard
-              tasks={tasks}
-              goals={weeklyGoals}
-              onNavigate={setActiveTab}
+            <HomeDashboard 
+              tasks={tasks} 
+              goals={weeklyGoals} 
+              onNavigate={setActiveTab} 
               onAddTask={() => setShowTaskModal(true)}
               stats={stats}
             />
           )}
-
+          
           {activeTab === 'board' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in slide-in-from-right-4 duration-500">
+              <TaskColumn 
+                title="Pending Tasks" 
+                icon="fa-clock" 
+                tasks={pendingTasks} 
+                color="indigo"
+                onStatusChange={updateTaskStatus}
+                onProgressChange={updateTaskProgress}
+                onDelete={deleteTask}
+              />
+              <TaskColumn 
+                title="Completed" 
+                icon="fa-circle-check" 
+                tasks={completedTasks} 
+                color="emerald"
+                onStatusChange={updateTaskStatus}
+                onProgressChange={updateTaskProgress}
+                onDelete={deleteTask}
+              />
+              <TaskColumn 
+                title="Not Completed" 
+                icon="fa-circle-xmark" 
+                tasks={missedTasks} 
+                color="rose"
+                onStatusChange={updateTaskStatus}
+                onProgressChange={updateTaskProgress}
+                onDelete={deleteTask}
+              />
+            </div>
+          )}
+          
+          {activeTab === 'goals' && (
+            <WeeklyGoalSection 
+              goals={weeklyGoals} 
+              onAddGoal={addGoal} 
+              onToggleGoal={toggleGoal}
+              onDeleteGoal={deleteGoal}
+            />
+          )}
+        </div>
+      </main>
+
+      {showTaskModal && (
+        <TaskForm 
+          onClose={() => setShowTaskModal(false)} 
+          onSubmit={addTask} 
+        />
+      )}
+    </div>
+  );
+};
+
+export default App;
