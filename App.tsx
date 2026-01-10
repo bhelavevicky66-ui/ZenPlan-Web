@@ -83,7 +83,7 @@ const App: React.FC = () => {
   };
 
   const toggleGoal = (id: string) => {
-    setWeeklyGoals(prev => prev.map(g => 
+    setWeeklyGoals(prev => prev.map(g =>
       g.id === id ? { ...g, isDone: !g.isDone } : g
     ));
   };
@@ -98,7 +98,7 @@ const App: React.FC = () => {
     // Total weighted completion (0 to total tasks)
     const weightedDone = tasks.reduce((acc, curr) => acc + (curr.progress / 100), 0);
     const missedCount = tasks.filter(t => t.status === 'not-completed').length;
-    
+
     // Percentage split for the whole board
     const completedPercent = total > 0 ? Math.round((weightedDone / total) * 100) : 0;
     const remainingPercent = total > 0 ? 100 - completedPercent : 0;
@@ -119,68 +119,25 @@ const App: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] text-slate-800">
-      <Sidebar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
         onAddTask={() => setShowTaskModal(true)}
         stats={stats}
       />
-      
+
       <main className="flex-1 flex flex-col overflow-hidden">
         <Header onAddTask={() => setShowTaskModal(true)} />
-        
+
         <div className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar">
           {activeTab === 'home' && (
-            <HomeDashboard 
-              tasks={tasks} 
-              goals={weeklyGoals} 
-              onNavigate={setActiveTab} 
+            <HomeDashboard
+              tasks={tasks}
+              goals={weeklyGoals}
+              onNavigate={setActiveTab}
               onAddTask={() => setShowTaskModal(true)}
               stats={stats}
             />
           )}
-          
+
           {activeTab === 'board' && (
-            <div className="flex flex-col md:flex-row gap-6 h-full pb-10">
-              <TaskColumn 
-                title="To Do" 
-                tasks={pendingTasks} 
-                status="pending" 
-                onStatusChange={updateTaskStatus}
-                onProgressChange={updateTaskProgress}
-                onDelete={deleteTask}
-              />
-              <TaskColumn 
-                title="Completed" 
-                tasks={completedTasks} 
-                status="completed" 
-                onStatusChange={updateTaskStatus}
-                onProgressChange={updateTaskProgress}
-                onDelete={deleteTask}
-              />
-            </div>
-          )}
-
-          {activeTab === 'goals' && (
-             <WeeklyGoalSection 
-               goals={weeklyGoals}
-               onAdd={addGoal}
-               onToggle={toggleGoal}
-               onDelete={deleteGoal}
-             />
-          )}
-
-        </div>
-      </main>
-
-      {showTaskModal && (
-        <TaskForm 
-          onClose={() => setShowTaskModal(false)} 
-          onAdd={addTask} 
-        />
-      )}
-    </div>
-  );
-};
-
-export default App;

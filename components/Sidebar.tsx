@@ -5,7 +5,7 @@ import { TabType } from '../types';
 interface SidebarProps {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
-  stats: { total: number; done: number; missed: number };
+  stats: { total: number; done: number; missed: number; completedPercent: number; remainingPercent: number };
   onAddTask: () => void;
 }
 
@@ -61,10 +61,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, stats, onAdd
 
       <div className="p-4 mt-auto border-t border-slate-100">
         <div className="bg-slate-50 rounded-2xl p-4 space-y-4">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Your Progress</h3>
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Board Performance</h3>
           <div className="space-y-3">
-            <StatRow label="Task Success" val={stats.done} total={stats.total} color="emerald" />
-            <StatRow label="Reliability" val={stats.total - stats.missed} total={stats.total} color="indigo" />
+            <StatRow label="Complete" val={stats.completedPercent} color="emerald" />
+            <StatRow label="Incomplete" val={stats.remainingPercent} color="rose" />
           </div>
         </div>
       </div>
@@ -72,18 +72,17 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, stats, onAdd
   );
 };
 
-const StatRow = ({ label, val, total, color }: { label: string; val: number; total: number; color: string }) => {
-  const percent = total > 0 ? Math.round((val / total) * 100) : 0;
+const StatRow = ({ label, val, color }: { label: string; val: number; color: string }) => {
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-xs font-medium">
         <span className="text-slate-500">{label}</span>
-        <span className={`text-${color}-600`}>{percent}%</span>
+        <span className={`text-${color}-600`}>{val}%</span>
       </div>
       <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
         <div 
           className={`h-full bg-${color}-500 rounded-full transition-all duration-500`} 
-          style={{ width: `${percent}%` }}
+          style={{ width: `${val}%` }}
         />
       </div>
     </div>
