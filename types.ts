@@ -14,6 +14,7 @@ export interface WeeklyGoal {
   id: string;
   title: string;
   isDone: boolean;
+  createdAt: number;
 }
 
 export type TabType = 'home' | 'board' | 'goals';
