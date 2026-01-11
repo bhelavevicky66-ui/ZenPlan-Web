@@ -1,14 +1,13 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-import { 
-  getAuth, 
-  signInWithPopup, 
-  GoogleAuthProvider, 
-  onAuthStateChanged, 
+import {
+  signInWithPopup,
+  GoogleAuthProvider,
+  onAuthStateChanged,
   signOut,
   User as FirebaseUser
-} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+} from 'firebase/auth';
+import { auth } from './firebase';
 import { Task, WeeklyGoal, TaskStatus, TabType } from './types';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -19,19 +18,6 @@ import HomeDashboard from './components/HomeDashboard';
 import WelcomeScreen from './components/WelcomeScreen';
 import CelebrationOverlay from './components/CelebrationOverlay';
 
-// NOTE: To make this fully functional, replace these placeholders with your Firebase project credentials from the Firebase Console.
-const firebaseConfig = {
-  apiKey: "AIzaSyAs-EXAMPLE-KEY",
-  authDomain: "zenplan-productivity.firebaseapp.com",
-  projectId: "zenplan-productivity",
-  storageBucket: "zenplan-productivity.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:abcdef123456"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
 interface User {
@@ -47,7 +33,7 @@ const App: React.FC = () => {
   const [lastCelebratedDay, setLastCelebratedDay] = useState<string>(() => {
     return localStorage.getItem('zenplan_last_celebrated') || '';
   });
-  
+
   // User Authentication State
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
@@ -87,14 +73,14 @@ const App: React.FC = () => {
 
   useEffect(() => {
     localStorage.setItem('zenplan_tasks', JSON.stringify(tasks));
-    
+
     // Check for celebration
     const todayStr = new Date().toDateString();
     const todayTasks = tasks.filter(t => new Date(t.createdAt).toDateString() === todayStr);
-    
-    if (todayTasks.length > 0 && 
-        todayTasks.every(t => t.status === 'completed') && 
-        lastCelebratedDay !== todayStr) {
+
+    if (todayTasks.length > 0 &&
+      todayTasks.every(t => t.status === 'completed') &&
+      lastCelebratedDay !== todayStr) {
       setShowCelebration(true);
       setLastCelebratedDay(todayStr);
       localStorage.setItem('zenplan_last_celebrated', todayStr);
@@ -140,7 +126,7 @@ const App: React.FC = () => {
   };
 
   const updateTask = (id: string, title: string, description: string) => {
-    setTasks(prev => prev.map(task => 
+    setTasks(prev => prev.map(task =>
       task.id === id ? { ...task, title, description } : task
     ));
     setEditingTask(null);
@@ -184,7 +170,7 @@ const App: React.FC = () => {
   };
 
   const toggleGoal = (id: string) => {
-    setWeeklyGoals(prev => prev.map(g => 
+    setWeeklyGoals(prev => prev.map(g =>
       g.id === id ? { ...g, isDone: !g.isDone } : g
     ));
   };
@@ -220,61 +206,61 @@ const App: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] text-slate-800 relative">
-      <Sidebar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
         onAddTask={() => setShowTaskModal(true)}
         stats={stats}
       />
-      
+
       <main className="flex-1 flex flex-col overflow-hidden">
-        <Header 
+        <Header
           user={user}
           onLogin={handleLogin}
           onLogout={handleLogout}
         />
-        
+
         <div className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar">
           {loadingAuth ? (
             <div className="flex items-center justify-center h-full">
-               <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+              <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
             </div>
           ) : activeTab === 'home' && (
-            <HomeDashboard 
-              tasks={tasks} 
-              goals={weeklyGoals} 
-              onNavigate={setActiveTab} 
+            <HomeDashboard
+              tasks={tasks}
+              goals={weeklyGoals}
+              onNavigate={setActiveTab}
               onAddTask={() => setShowTaskModal(true)}
               stats={stats}
             />
           )}
-          
+
           {!loadingAuth && activeTab === 'board' && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in slide-in-from-right-4 duration-500">
-              <TaskColumn 
-                title="Pending Tasks" 
-                icon="fa-clock" 
-                tasks={pendingTasks} 
+              <TaskColumn
+                title="Pending Tasks"
+                icon="fa-clock"
+                tasks={pendingTasks}
                 color="indigo"
                 onStatusChange={updateTaskStatus}
                 onProgressChange={updateTaskProgress}
                 onDelete={deleteTask}
                 onEdit={setEditingTask}
               />
-              <TaskColumn 
-                title="Completed" 
-                icon="fa-circle-check" 
-                tasks={completedTasks} 
+              <TaskColumn
+                title="Completed"
+                icon="fa-circle-check"
+                tasks={completedTasks}
                 color="emerald"
                 onStatusChange={updateTaskStatus}
                 onProgressChange={updateTaskProgress}
                 onDelete={deleteTask}
                 onEdit={setEditingTask}
               />
-              <TaskColumn 
-                title="Not Completed" 
-                icon="fa-circle-xmark" 
-                tasks={missedTasks} 
+              <TaskColumn
+                title="Not Completed"
+                icon="fa-circle-xmark"
+                tasks={missedTasks}
                 color="rose"
                 onStatusChange={updateTaskStatus}
                 onProgressChange={updateTaskProgress}
@@ -283,12 +269,12 @@ const App: React.FC = () => {
               />
             </div>
           )}
-          
+
           {!loadingAuth && activeTab === 'goals' && (
-            <WeeklyGoalSection 
-              goals={weeklyGoals} 
+            <WeeklyGoalSection
+              goals={weeklyGoals}
               tasks={tasks}
-              onAddGoal={addGoal} 
+              onAddGoal={addGoal}
               onToggleGoal={toggleGoal}
               onDeleteGoal={deleteGoal}
             />
@@ -297,19 +283,19 @@ const App: React.FC = () => {
       </main>
 
       {(showTaskModal || editingTask) && (
-        <TaskForm 
+        <TaskForm
           taskToEdit={editingTask || undefined}
           onClose={() => {
             setShowTaskModal(false);
             setEditingTask(null);
-          }} 
+          }}
           onSubmit={(title, description) => {
             if (editingTask) {
               updateTask(editingTask.id, title, description);
             } else {
               addTask(title, description);
             }
-          }} 
+          }}
         />
       )}
 

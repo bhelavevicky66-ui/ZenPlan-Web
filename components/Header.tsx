@@ -84,7 +84,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogin, onLogout }) => {
               alt="Google" 
               className="w-4 h-4"
             />
-            <span>Login with Google</span>
+            <span>Sign up</span>
           </button>
         )}
       </div>
