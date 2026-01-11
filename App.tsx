@@ -7,7 +7,8 @@ import {
   signOut,
   User as FirebaseUser
 } from 'firebase/auth';
-import { auth } from './firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from './firebase';
 import { Task, WeeklyGoal, TaskStatus, TabType } from './types';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -24,6 +25,7 @@ interface User {
   name: string;
   email: string;
   avatar: string;
+  uid: string;
 }
 
 const App: React.FC = () => {
@@ -52,44 +54,103 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [isDataLoaded, setIsDataLoaded] = useState(false); // New flag to prevent overwriting before load
 
-  // Sync Firebase Auth State
+  // Sync Firebase Auth State & Data Loading
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
-        setUser({
+        const userData = {
           name: firebaseUser.displayName || 'User',
           email: firebaseUser.email || '',
-          avatar: firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${firebaseUser.uid}`
-        });
+          avatar: firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${firebaseUser.uid}`,
+          uid: firebaseUser.uid
+        };
+        setUser(userData);
+
+        // Load data from Firestore
+        try {
+          const userDocRef = doc(db, 'users', firebaseUser.uid);
+          const userDoc = await getDoc(userDocRef);
+
+          if (userDoc.exists()) {
+            // User exists, load their data
+            const data = userDoc.data();
+            if (data.tasks) setTasks(data.tasks);
+            if (data.weeklyGoals) setWeeklyGoals(data.weeklyGoals);
+          } else {
+            // New user (or first time logging in with this code), upload local data to init their account
+            await setDoc(userDocRef, {
+              tasks: tasks, // Upload current local tasks
+              weeklyGoals: weeklyGoals
+            }, { merge: true });
+          }
+        } catch (error) {
+          console.error("Error loading user data:", error);
+        }
       } else {
         setUser(null);
+        // Optionally switch back to local storage or clear? 
+        // For now, keeping current state is safer than clearing, 
+        // effectively "converting" cloud data to local session if they logout, 
+        // though typically you might want to clear sensitive info.
+        // Let's stick to the user's "persistence" request.
       }
       setLoadingAuth(false);
+      setIsDataLoaded(true);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, []); // Empty dependency array - runs once on mount/auth-init
+
+  // Save to Firestore (or LocalStorage) whenever tasks/goals change
+  useEffect(() => {
+    const saveData = async () => {
+      // Always save to local storage as backup/offline cache
+      localStorage.setItem('zenplan_tasks', JSON.stringify(tasks));
+
+      // Check for celebration
+      const todayStr = new Date().toDateString();
+      const todayTasks = tasks.filter(t => new Date(t.createdAt).toDateString() === todayStr);
+
+      if (todayTasks.length > 0 &&
+        todayTasks.every(t => t.status === 'completed') &&
+        lastCelebratedDay !== todayStr) {
+        setShowCelebration(true);
+        setLastCelebratedDay(todayStr);
+        localStorage.setItem('zenplan_last_celebrated', todayStr);
+      }
+
+      // If logged in and initial load is done, save to Firestore
+      if (user && isDataLoaded) {
+        try {
+          await setDoc(doc(db, 'users', user.uid), {
+            tasks: tasks
+          }, { merge: true });
+        } catch (err) {
+          console.error("Error saving tasks to cloud:", err);
+        }
+      }
+    };
+    saveData();
+  }, [tasks, lastCelebratedDay, user, isDataLoaded]);
 
   useEffect(() => {
-    localStorage.setItem('zenplan_tasks', JSON.stringify(tasks));
+    const saveGoals = async () => {
+      localStorage.setItem('zenplan_goals', JSON.stringify(weeklyGoals));
 
-    // Check for celebration
-    const todayStr = new Date().toDateString();
-    const todayTasks = tasks.filter(t => new Date(t.createdAt).toDateString() === todayStr);
-
-    if (todayTasks.length > 0 &&
-      todayTasks.every(t => t.status === 'completed') &&
-      lastCelebratedDay !== todayStr) {
-      setShowCelebration(true);
-      setLastCelebratedDay(todayStr);
-      localStorage.setItem('zenplan_last_celebrated', todayStr);
-    }
-  }, [tasks, lastCelebratedDay]);
-
-  useEffect(() => {
-    localStorage.setItem('zenplan_goals', JSON.stringify(weeklyGoals));
-  }, [weeklyGoals]);
+      if (user && isDataLoaded) {
+        try {
+          await setDoc(doc(db, 'users', user.uid), {
+            weeklyGoals: weeklyGoals
+          }, { merge: true });
+        } catch (err) {
+          console.error("Error saving goals to cloud:", err);
+        }
+      }
+    };
+    saveGoals();
+  }, [weeklyGoals, user, isDataLoaded]);
 
   // Auth Handlers
   const handleLogin = async () => {

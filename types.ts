@@ -17,9 +17,22 @@ export interface WeeklyGoal {
   createdAt: number;
 }
 
-export type TabType = 'home' | 'board' | 'goals';
+export type TabType = 'home' | 'board' | 'goals' | 'admin';
 
 export interface AppState {
   tasks: Task[];
   weeklyGoals: WeeklyGoal[];
+}
+
+export type UserRole = 'user' | 'admin' | 'super_admin';
+
+export interface UserData {
+  uid: string;
+  email: string;
+  displayName: string;
+  photoURL: string;
+  role: UserRole;
+  createdAt: number;
+  tasks?: Task[];
+  weeklyGoals?: WeeklyGoal[];
 }
