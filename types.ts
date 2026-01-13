@@ -8,6 +8,7 @@ export interface Task {
   status: TaskStatus;
   progress: number; // 0 to 100
   createdAt: number;
+  lastUpdated?: number;
 }
 
 export interface WeeklyGoal {

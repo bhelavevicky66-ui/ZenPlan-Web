@@ -250,7 +250,9 @@ const App: React.FC = () => {
       description,
       status: 'pending',
       progress: 0,
+
       createdAt: Date.now(),
+      lastUpdated: Date.now(),
     };
     setTasks([newTask, ...tasks]);
     setShowTaskModal(false);
@@ -258,7 +260,7 @@ const App: React.FC = () => {
 
   const updateTask = (id: string, title: string, description: string) => {
     setTasks(prev => prev.map(task =>
-      task.id === id ? { ...task, title, description } : task
+      task.id === id ? { ...task, title, description, lastUpdated: Date.now() } : task
     ));
     setEditingTask(null);
   };
@@ -267,7 +269,7 @@ const App: React.FC = () => {
     setTasks(prev => prev.map(task => {
       if (task.id === id) {
         const newProgress = status === 'completed' ? 100 : (status === 'pending' && task.progress === 100 ? 50 : task.progress);
-        return { ...task, status, progress: newProgress };
+        return { ...task, status, progress: newProgress, lastUpdated: Date.now() };
       }
       return task;
     }));
@@ -279,7 +281,7 @@ const App: React.FC = () => {
         let status = task.status;
         if (progress === 100) status = 'completed';
         else if (progress < 100 && status === 'completed') status = 'pending';
-        return { ...task, progress, status };
+        return { ...task, progress, status, lastUpdated: Date.now() };
       }
       return task;
     }));

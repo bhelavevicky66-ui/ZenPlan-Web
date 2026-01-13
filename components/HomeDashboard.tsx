@@ -23,14 +23,17 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ tasks, goals, onNavigate,
     yesterdayDateObj.setDate(yesterdayDateObj.getDate() - 1);
     const yesterdayDate = new Date(yesterdayDateObj.getFullYear(), yesterdayDateObj.getMonth(), yesterdayDateObj.getDate()).getTime();
 
+    const isSameDay = (timestamp: number, targetTime: number) => {
+      const d = new Date(timestamp);
+      return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() === targetTime;
+    };
+
     const tTasks = tasks.filter(t => {
-      const d = new Date(t.createdAt);
-      return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() === todayDate;
+      return isSameDay(t.createdAt, todayDate) || (t.lastUpdated ? isSameDay(t.lastUpdated, todayDate) : false);
     });
 
     const yTasks = tasks.filter(t => {
-      const d = new Date(t.createdAt);
-      return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() === yesterdayDate;
+      return isSameDay(t.createdAt, yesterdayDate) || (t.lastUpdated ? isSameDay(t.lastUpdated, yesterdayDate) : false);
     });
 
     const format = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -178,7 +181,7 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ tasks, goals, onNavigate,
 
         {/* Performance Visualization */}
         <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center text-center">
-          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6 w-full text-left">Today's Goal Performance</h3>
+          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6 w-full text-left">Today's Performance</h3>
 
           <div className="relative w-48 h-48 mb-6">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
