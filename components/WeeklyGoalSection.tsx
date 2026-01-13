@@ -170,7 +170,7 @@ const WeeklyGoalSection: React.FC<WeeklyGoalSectionProps> = ({ goals, tasks, onA
 
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-6">
           {weeklyTracker.map((day) => (
-            <div key={day.name} className={`flex flex-col items-center p-4 rounded-3xl transition-all ${day.isToday ? 'bg-indigo-50 border border-indigo-100' : 'bg-slate-50 border border-transparent hover:border-slate-200'}`}>
+            <div key={day.name} className={`flex flex-col items-center p-4 rounded-3xl transition-all ${day.isToday ? 'bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800' : 'bg-slate-50 dark:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700'}`}>
               <div className="relative w-20 h-20 mb-3">
                 <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
                   <circle className="text-slate-200 dark:text-slate-700" strokeWidth="8" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50" />
@@ -246,15 +246,15 @@ const WeeklyGoalSection: React.FC<WeeklyGoalSectionProps> = ({ goals, tasks, onA
               <div
                 key={goal.id}
                 className={`flex items-center gap-5 p-6 rounded-[2rem] border transition-all duration-300 group ${goal.isDone
-                    ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900/30'
-                    : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-indigo-100 dark:hover:border-indigo-900 shadow-sm'
+                  ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900/30'
+                  : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-indigo-100 dark:hover:border-indigo-900 shadow-sm'
                   }`}
               >
                 <button
                   onClick={() => onToggleGoal(goal.id)}
                   className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${goal.isDone
-                      ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-200'
-                      : 'border-slate-300 dark:border-slate-600 hover:border-indigo-400 bg-white dark:bg-slate-800'
+                    ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-200'
+                    : 'border-slate-300 dark:border-slate-600 hover:border-indigo-400 bg-white dark:bg-slate-800'
                     }`}
                 >
                   {goal.isDone && <i className="fa-solid fa-check text-xs"></i>}
