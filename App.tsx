@@ -18,6 +18,7 @@ import WeeklyGoalSection from './components/WeeklyGoalSection';
 import HomeDashboard from './components/HomeDashboard';
 import WelcomeScreen from './components/WelcomeScreen';
 import CelebrationOverlay from './components/CelebrationOverlay';
+import StreakCelebration from './components/StreakCelebration';
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -35,6 +36,8 @@ const App: React.FC = () => {
   const [lastCelebratedDay, setLastCelebratedDay] = useState<string>(() => {
     return localStorage.getItem('zenplan_last_celebrated') || '';
   });
+
+  const [showStreakCelebration, setShowStreakCelebration] = useState(false);
 
   // Streak State
   const [streak, setStreak] = useState<number>(() => {
@@ -236,6 +239,9 @@ const App: React.FC = () => {
             if (user && isDataLoaded) {
               setDoc(doc(db, 'users', user.uid), { streak: finalStreak, lastStreakDate: todayStr }, { merge: true });
             }
+
+            // Show Streak Celebration
+            setShowStreakCelebration(true);
           }
         }
       }
@@ -401,6 +407,10 @@ const App: React.FC = () => {
 
   return (
     <div className={`flex min-h-screen relative transition-colors duration-300 ${darkMode ? 'bg-slate-900 text-slate-100' : 'bg-[#F8FAFC] text-slate-800'}`}>
+      {/* Overlays */}
+      {showCelebration && <CelebrationOverlay onClose={() => setShowCelebration(false)} />}
+      {showStreakCelebration && <StreakCelebration streak={streak} onClose={() => setShowStreakCelebration(false)} />}
+
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
