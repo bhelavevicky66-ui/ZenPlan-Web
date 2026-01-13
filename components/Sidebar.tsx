@@ -14,7 +14,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, stats, onAdd
     <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-screen sticky top-0 shadow-sm z-40 transition-colors duration-300">
       <div className="p-6 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none">
             <i className="fa-solid fa-bolt text-white text-xl"></i>
           </div>
           <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">ZenPlan</h1>
@@ -24,7 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, stats, onAdd
       <div className="px-4 py-6">
         <button
           onClick={onAddTask}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-100 transition-all active:scale-[0.98] mb-8"
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-100 dark:shadow-indigo-900/20 transition-all active:scale-[0.98] mb-8"
         >
           <i className="fa-solid fa-circle-plus"></i>
           <span>Add New Task</span>
