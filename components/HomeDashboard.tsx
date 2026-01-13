@@ -1,6 +1,7 @@
 
 import React, { useMemo } from 'react';
 import { Task, WeeklyGoal, TabType } from '../types';
+import AIGoalAssistant from './AIGoalAssistant';
 
 interface HomeDashboardProps {
   tasks: Task[];
@@ -169,6 +170,10 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ tasks, goals, onNavigate,
                 {todayStats.count} active tasks today
               </div>
             </div>
+          </div>
+
+          <div className="mb-6">
+            <AIGoalAssistant />
           </div>
 
           <button
