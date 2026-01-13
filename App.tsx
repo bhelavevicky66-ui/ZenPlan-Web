@@ -202,6 +202,19 @@ const App: React.FC = () => {
 
   const handleLogout = async () => {
     try {
+      // Ensure latest local data is saved to the user's Firestore doc before signing out
+      if (user && isDataLoaded) {
+        try {
+          await setDoc(doc(db, 'users', user.uid), {
+            tasks,
+            weeklyGoals
+          }, { merge: true });
+        } catch (err) {
+          console.error("Error saving data before logout:", err);
+          // Continue to sign out even if saving fails to avoid locking the user out
+        }
+      }
+
       await signOut(auth);
     } catch (error) {
       console.error("Logout failed:", error);
