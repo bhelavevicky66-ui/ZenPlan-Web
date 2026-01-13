@@ -145,7 +145,14 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ tasks, goals, onNavigate,
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Today</span>
-                  <span className="text-xs font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-md">{todayStr}</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-yellow-400 font-bold uppercase tracking-widest mr-1">Impact Score:</span>
+                    <div className="flex text-yellow-400 text-xs">
+                      {[...Array(5)].map((_, i) => (
+                        <i key={i} className={`fa-solid fa-star ${i < Math.round(todayStats.done / 20) ? '' : 'text-slate-700'}`}></i>
+                      ))}
+                    </div>
+                  </div>
                 </div>
                 <h4 className="text-lg font-bold text-white mb-6">Current Progress</h4>
 
