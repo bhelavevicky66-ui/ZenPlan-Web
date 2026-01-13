@@ -36,6 +36,14 @@ const App: React.FC = () => {
     return localStorage.getItem('zenplan_last_celebrated') || '';
   });
 
+  // Streak State
+  const [streak, setStreak] = useState<number>(() => {
+    return parseInt(localStorage.getItem('zenplan_streak') || '0', 10);
+  });
+  const [lastStreakDate, setLastStreakDate] = useState<string>(() => {
+    return localStorage.getItem('zenplan_last_streak_date') || '';
+  });
+
   // Theme State
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -160,22 +168,76 @@ const App: React.FC = () => {
     return () => unsubscribe();
   }, []); // Empty dependency array - runs once on mount/auth-init
 
+  // Check for streak reset on load/day change
+  useEffect(() => {
+    const checkStreak = () => {
+      if (!lastStreakDate) return;
+
+      const now = new Date();
+      const todayStr = now.toDateString();
+      const yesterdayFn = new Date(now);
+      yesterdayFn.setDate(yesterdayFn.getDate() - 1);
+      const yesterdayStr = yesterdayFn.toDateString();
+
+      // If last streak date was older than yesterday, and it's not today (meaning we haven't done today's yet), reset.
+      // Actually, if we missed yesterday, streak should be 0 (or 1 if we did today's).
+      // But we only want to reset if the user visits and we realize the chain is broken.
+
+      if (lastStreakDate !== todayStr && lastStreakDate !== yesterdayStr) {
+        // Chain broken
+        setStreak(0);
+        localStorage.setItem('zenplan_streak', '0');
+      }
+    };
+    checkStreak();
+  }, [lastStreakDate]);
+
   // Save to Firestore (or LocalStorage) whenever tasks/goals change
   useEffect(() => {
     const saveData = async () => {
       // Always save to local storage as backup/offline cache
       localStorage.setItem('zenplan_tasks', JSON.stringify(tasks));
 
-      // Check for celebration
+      // Check for celebration & streak
       const todayStr = new Date().toDateString();
-      const todayTasks = tasks.filter(t => new Date(t.createdAt).toDateString() === todayStr);
+      const todayTasks = tasks.filter(t => {
+        const d = new Date(t.createdAt);
+        // Check if created today OR updated today (if we want activity based)
+        // For strict streak, let's stick to "Tasks for Today" being completed.
+        return d.toDateString() === todayStr;
+      });
 
-      if (todayTasks.length > 0 &&
-        todayTasks.every(t => t.status === 'completed') &&
-        lastCelebratedDay !== todayStr) {
-        setShowCelebration(true);
-        setLastCelebratedDay(todayStr);
-        localStorage.setItem('zenplan_last_celebrated', todayStr);
+      if (todayTasks.length > 0 && todayTasks.every(t => t.status === 'completed')) {
+        // Celebration
+        if (lastCelebratedDay !== todayStr) {
+          setShowCelebration(true);
+          setLastCelebratedDay(todayStr);
+          localStorage.setItem('zenplan_last_celebrated', todayStr);
+
+          // Increment Streak if not already done for today
+          if (lastStreakDate !== todayStr) {
+            const newStreak = (lastStreakDate === new Date(new Date().setDate(new Date().getDate() - 1)).toDateString() ? streak : 0) + 1;
+            // Determine if we continue or reset (double check logic handled in effect above, but here we enforce increment validity)
+            // Simple logic: If last was yesterday, streak++. Else streak=1.
+
+            let finalStreak = 1;
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (lastStreakDate === yesterday.toDateString()) {
+              finalStreak = streak + 1;
+            }
+
+            setStreak(finalStreak);
+            setLastStreakDate(todayStr);
+            localStorage.setItem('zenplan_streak', finalStreak.toString());
+            localStorage.setItem('zenplan_last_streak_date', todayStr);
+
+            // Update cloud if possible
+            if (user && isDataLoaded) {
+              setDoc(doc(db, 'users', user.uid), { streak: finalStreak, lastStreakDate: todayStr }, { merge: true });
+            }
+          }
+        }
       }
 
       // If logged in and initial load is done, save to Firestore
@@ -344,6 +406,7 @@ const App: React.FC = () => {
         setActiveTab={setActiveTab}
         onAddTask={() => setShowTaskModal(true)}
         stats={stats}
+        streak={streak}
       />
 
       <main className="flex-1 flex flex-col overflow-hidden">

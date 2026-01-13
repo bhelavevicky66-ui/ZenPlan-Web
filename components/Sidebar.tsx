@@ -7,9 +7,10 @@ interface SidebarProps {
   setActiveTab: (tab: TabType) => void;
   stats: { total: number; done: number; missed: number; completedPercent: number; remainingPercent: number };
   onAddTask: () => void;
+  streak: number;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, stats, onAddTask }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, stats, onAddTask, streak }) => {
   return (
     <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-screen sticky top-0 shadow-sm z-40 transition-colors duration-300">
       <div className="p-6 border-b border-slate-100 dark:border-slate-800">
@@ -60,6 +61,16 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, stats, onAdd
       </div>
 
       <div className="p-4 mt-auto border-t border-slate-100 dark:border-slate-800">
+        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 space-y-4 mb-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Daily Streak</h3>
+            <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg ${streak > 0 ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'}`}>
+              <i className={`fa-solid fa-fire ${streak > 0 ? 'animate-pulse' : ''}`}></i>
+              <span className="text-sm font-black">{streak}</span>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 space-y-4">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Board Performance</h3>
           <div className="space-y-3">
