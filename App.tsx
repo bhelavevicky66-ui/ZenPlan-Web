@@ -74,10 +74,46 @@ const App: React.FC = () => {
           const userDoc = await getDoc(userDocRef);
 
           if (userDoc.exists()) {
-            // User exists, load their data
+            // User exists, load and MERGE their data with any local data to avoid accidental deletion
             const data = userDoc.data();
-            if (data.tasks) setTasks(data.tasks);
-            if (data.weeklyGoals) setWeeklyGoals(data.weeklyGoals);
+            const cloudTasks = data.tasks || [];
+            const cloudGoals = data.weeklyGoals || [];
+
+            // Merge helper: prefer the item with the latest createdAt, and include any local-only items
+            const mergeById = (localArr: any[], cloudArr: any[]) => {
+              const map = new Map<string, any>();
+              for (const item of cloudArr) {
+                if (item && item.id) map.set(item.id, item);
+              }
+              for (const item of localArr) {
+                if (!item) continue;
+                if (!item.id) item.id = Math.random().toString(36).substr(2, 9);
+                if (!map.has(item.id)) {
+                  map.set(item.id, item);
+                } else {
+                  const existing = map.get(item.id);
+                  if ((item.createdAt || 0) > (existing.createdAt || 0)) {
+                    map.set(item.id, item);
+                  }
+                }
+              }
+              return Array.from(map.values());
+            };
+
+            const mergedTasks = mergeById(tasks, cloudTasks);
+            const mergedGoals = mergeById(weeklyGoals, cloudGoals);
+
+            // Update local state with merged data (this will also persist to localStorage via existing effects)
+            setTasks(mergedTasks);
+            setWeeklyGoals(mergedGoals);
+
+            // If merge added any local-only items, push them back to Firestore so cloud is preserved
+            if (mergedTasks.length !== cloudTasks.length || mergedGoals.length !== cloudGoals.length) {
+              await setDoc(userDocRef, {
+                tasks: mergedTasks,
+                weeklyGoals: mergedGoals
+              }, { merge: true });
+            }
           } else {
             // New user (or first time logging in with this code), upload local data to init their account
             await setDoc(userDocRef, {
