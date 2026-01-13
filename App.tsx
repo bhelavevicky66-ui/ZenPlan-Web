@@ -36,6 +36,27 @@ const App: React.FC = () => {
     return localStorage.getItem('zenplan_last_celebrated') || '';
   });
 
+  // Theme State
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('zenplan_theme') === 'dark' ||
+        (!('zenplan_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('zenplan_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('zenplan_theme', 'light');
+    }
+  }, [darkMode]);
+
+  const toggleTheme = () => setDarkMode(!darkMode);
+
   // User Authentication State
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
@@ -315,7 +336,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] text-slate-800 relative">
+    <div className={`flex min-h-screen relative transition-colors duration-300 ${darkMode ? 'bg-slate-900 text-slate-100' : 'bg-[#F8FAFC] text-slate-800'}`}>
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -328,6 +349,8 @@ const App: React.FC = () => {
           user={user}
           onLogin={handleLogin}
           onLogout={handleLogout}
+          darkMode={darkMode}
+          toggleTheme={toggleTheme}
         />
 
         <div className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar">
