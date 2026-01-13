@@ -15,6 +15,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ user, onLogin, onLogout }) => {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   return (
     <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-slate-100 px-4 md:px-8 py-4 flex items-center justify-between">
@@ -39,11 +40,20 @@ const Header: React.FC<HeaderProps> = ({ user, onLogin, onLogout }) => {
               onClick={() => setShowDropdown(!showDropdown)}
               className="flex items-center gap-3 bg-slate-50 hover:bg-slate-100 p-1 pr-4 rounded-full transition-all border border-slate-200 group"
             >
-              <img
-                src={user.avatar}
-                alt={user.name}
-                className="w-9 h-9 rounded-full border-2 border-indigo-200 group-hover:border-indigo-400 transition-colors"
-              />
+              {(() => {
+                const initial = (user?.name && user.name.trim().charAt(0).toUpperCase()) || (user?.email && user.email.charAt(0).toUpperCase()) || '?';
+                const showInitial = !user?.avatar || imageError || (user?.avatar && user.avatar.includes('dicebear.com'));
+                return showInitial ? (
+                  <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold border-2 border-indigo-200 group-hover:border-indigo-400 transition-colors">{initial}</div>
+                ) : (
+                  <img
+                    src={user!.avatar}
+                    alt={user!.name}
+                    onError={() => setImageError(true)}
+                    className="w-9 h-9 rounded-full border-2 border-indigo-200 group-hover:border-indigo-400 transition-colors"
+                  />
+                );
+              })()}
               <div className="text-left hidden sm:block">
                 <p className="text-xs font-black text-slate-800 leading-none mb-0.5">{user.name}</p>
                 <p className="text-[10px] text-slate-400 font-bold leading-none uppercase tracking-tighter">Premium Member</p>

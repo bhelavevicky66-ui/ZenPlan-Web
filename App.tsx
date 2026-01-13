@@ -63,7 +63,7 @@ const App: React.FC = () => {
         const userData = {
           name: firebaseUser.displayName || 'User',
           email: firebaseUser.email || '',
-          avatar: firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${firebaseUser.uid}`,
+          avatar: firebaseUser.photoURL || '',
           uid: firebaseUser.uid
         };
         setUser(userData);
