@@ -36,4 +36,14 @@ export interface UserData {
   createdAt: number;
   tasks?: Task[];
   weeklyGoals?: WeeklyGoal[];
+  moodLogs?: MoodLog[];
+}
+
+export type Mood = 'happy' | 'neutral' | 'tired';
+
+export interface MoodLog {
+  id: string;
+  mood: Mood;
+  timestamp: number;
+  context: 'completion' | 'failure'; // When it was asked
 }

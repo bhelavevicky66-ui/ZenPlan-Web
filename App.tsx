@@ -19,6 +19,8 @@ import HomeDashboard from './components/HomeDashboard';
 import WelcomeScreen from './components/WelcomeScreen';
 import CelebrationOverlay from './components/CelebrationOverlay';
 import StreakCelebration from './components/StreakCelebration';
+import MoodTrackerOverlay from './components/MoodTrackerOverlay';
+import { Mood, MoodLog } from './types';
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -38,6 +40,12 @@ const App: React.FC = () => {
   });
 
   const [showStreakCelebration, setShowStreakCelebration] = useState(false);
+  const [showMoodTracker, setShowMoodTracker] = useState(false);
+  const [moodContext, setMoodContext] = useState<'completion' | 'failure'>('completion');
+  const [moodLogs, setMoodLogs] = useState<MoodLog[]>(() => {
+    const saved = localStorage.getItem('zenplan_moods');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   // Streak State
   const [streak, setStreak] = useState<number>(() => {
@@ -341,6 +349,14 @@ const App: React.FC = () => {
       }
       return task;
     }));
+
+    if (status === 'completed') {
+      const hasRecentLog = moodLogs.some(log => Date.now() - log.timestamp < 1000 * 60 * 5); // 5 mins cooldown
+      if (!hasRecentLog) {
+        setMoodContext('completion');
+        setShowMoodTracker(true);
+      }
+    }
   };
 
   const updateTaskProgress = (id: string, progress: number) => {
@@ -353,6 +369,14 @@ const App: React.FC = () => {
       }
       return task;
     }));
+
+    if (progress === 100) {
+      const hasRecentLog = moodLogs.some(log => Date.now() - log.timestamp < 1000 * 60 * 5);
+      if (!hasRecentLog) {
+        setMoodContext('completion');
+        setShowMoodTracker(true);
+      }
+    }
   };
 
   const deleteTask = (id: string) => {
@@ -410,6 +434,30 @@ const App: React.FC = () => {
       {/* Overlays */}
       {showCelebration && <CelebrationOverlay onClose={() => setShowCelebration(false)} />}
       {showStreakCelebration && <StreakCelebration streak={streak} onClose={() => setShowStreakCelebration(false)} />}
+      {showMoodTracker && (
+        <MoodTrackerOverlay
+          context={moodContext}
+          onClose={() => setShowMoodTracker(false)}
+          onSelect={(mood) => {
+            const newLog: MoodLog = {
+              id: Math.random().toString(36).substr(2, 9),
+              mood,
+              timestamp: Date.now(),
+              context: moodContext
+            };
+            setMoodLogs(prev => {
+              const updated = [...prev, newLog];
+              localStorage.setItem('zenplan_moods', JSON.stringify(updated));
+              // Also sync to cloud if needed
+              if (user && isDataLoaded) {
+                setDoc(doc(db, 'users', user.uid), { moodLogs: updated }, { merge: true });
+              }
+              return updated;
+            });
+            setShowMoodTracker(false);
+          }}
+        />
+      )}
 
       <Sidebar
         activeTab={activeTab}
