@@ -359,8 +359,10 @@ const App: React.FC = () => {
       return task;
     }));
 
-    // Show Star Rating Update (Always)
-    setShowStarOverlay(true);
+    // Show Star Rating Update only on completion
+    if (status === 'completed') {
+      setShowStarOverlay(true);
+    }
 
     if (status === 'completed') {
       const hasRecentLog = moodLogs.some(log => Date.now() - log.timestamp < 1000 * 60 * 5); // 5 mins cooldown
