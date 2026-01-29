@@ -353,7 +353,16 @@ const App: React.FC = () => {
   const updateTaskStatus = (id: string, status: TaskStatus) => {
     setTasks(prev => prev.map(task => {
       if (task.id === id) {
-        const newProgress = status === 'completed' ? 100 : (status === 'pending' && task.progress === 100 ? 50 : task.progress);
+        // User requested that completion does NOT auto-jump to 100%. 
+        // We keep the progress as is, unless it was 0, maybe? 
+        // The user said "jitne renje par karke complete dhbhye". 
+        // So we respect the current progress value even if completed.
+
+        let newProgress = task.progress;
+
+        // If moving TO pending and was 100, maybe reset? User didn't ask for this direction but safest is to keep as is or default behavior.
+        // For now, removing the forced 100 logic.
+
         return { ...task, status, progress: newProgress, lastUpdated: Date.now() };
       }
       return task;
@@ -376,15 +385,19 @@ const App: React.FC = () => {
   const updateTaskProgress = (id: string, progress: number) => {
     setTasks(prev => prev.map(task => {
       if (task.id === id) {
-        let status = task.status;
-        if (progress === 100) status = 'completed';
-        else if (progress < 100 && status === 'completed') status = 'pending';
-        return { ...task, progress, status, lastUpdated: Date.now() };
+        // User wants manual control. Do not auto-change status based on progress.
+        // "jitna select kare utna hi hona chiye"
+        return { ...task, progress, lastUpdated: Date.now() };
       }
       return task;
     }));
 
-    // Show Star Rating Update only on completion
+    // Show Star Rating Update only on completion (which now must be manually triggered via status change or if we decide 100% is implicit completion, but user said otherwise)
+    // Actually, usually hitting 100% implies done-ness. But if they want "range select karke complete dabaye", 
+    // it implies two steps.
+    // However, if they slide to 100, we can probably still show the star overlay as a nice touch without forcing status?
+    // Let's stick to showing stars if they hit 100 manually as a reward.
+
     if (progress === 100) {
       setShowStarOverlay(true);
 
