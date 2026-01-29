@@ -13,9 +13,10 @@ interface HeaderProps {
   onLogout: () => void;
   darkMode: boolean;
   toggleTheme: () => void;
+  isSaving?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ user, onLogin, onLogout, darkMode, toggleTheme }) => {
+const Header: React.FC<HeaderProps> = ({ user, onLogin, onLogout, darkMode, toggleTheme, isSaving }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [imageError, setImageError] = useState(false);
 
@@ -23,7 +24,15 @@ const Header: React.FC<HeaderProps> = ({ user, onLogin, onLogout, darkMode, togg
     <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-30 border-b border-slate-100 dark:border-slate-800 px-4 md:px-8 py-4 flex items-center justify-between transition-colors duration-300">
       <div>
         <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">My Workspace</h2>
-        <p className="text-slate-500 dark:text-slate-400 text-sm hidden sm:block">Focus on what's important today</p>
+        <div className="flex items-center gap-3">
+          <p className="text-slate-500 dark:text-slate-400 text-sm hidden sm:block">Focus on what's important today</p>
+          {isSaving && (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 animate-pulse">
+              <i className="fa-solid fa-cloud-arrow-up text-[10px] text-indigo-500"></i>
+              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Saving...</span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-4">

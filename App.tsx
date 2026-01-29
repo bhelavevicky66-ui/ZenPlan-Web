@@ -20,6 +20,7 @@ import WelcomeScreen from './components/WelcomeScreen';
 import CelebrationOverlay from './components/CelebrationOverlay';
 import StreakCelebration from './components/StreakCelebration';
 import MoodTrackerOverlay from './components/MoodTrackerOverlay';
+import StarOverlay from './components/StarOverlay';
 import { Mood, MoodLog } from './types';
 
 const googleProvider = new GoogleAuthProvider();
@@ -41,6 +42,7 @@ const App: React.FC = () => {
 
   const [showStreakCelebration, setShowStreakCelebration] = useState(false);
   const [showMoodTracker, setShowMoodTracker] = useState(false);
+  const [showStarOverlay, setShowStarOverlay] = useState(false);
   const [moodContext, setMoodContext] = useState<'completion' | 'failure'>('completion');
   const [moodLogs, setMoodLogs] = useState<MoodLog[]>(() => {
     const saved = localStorage.getItem('zenplan_moods');
@@ -95,6 +97,7 @@ const App: React.FC = () => {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isDataLoaded, setIsDataLoaded] = useState(false); // New flag to prevent overwriting before load
+  const [isSaving, setIsSaving] = useState(false);
 
   // Sync Firebase Auth State & Data Loading
   useEffect(() => {
@@ -256,12 +259,15 @@ const App: React.FC = () => {
 
       // If logged in and initial load is done, save to Firestore
       if (user && isDataLoaded) {
+        setIsSaving(true);
         try {
           await setDoc(doc(db, 'users', user.uid), {
             tasks: tasks
           }, { merge: true });
         } catch (err) {
           console.error("Error saving tasks to cloud:", err);
+        } finally {
+          setTimeout(() => setIsSaving(false), 800); // Small delay for visual feedback
         }
       }
     };
@@ -273,12 +279,15 @@ const App: React.FC = () => {
       localStorage.setItem('zenplan_goals', JSON.stringify(weeklyGoals));
 
       if (user && isDataLoaded) {
+        setIsSaving(true);
         try {
           await setDoc(doc(db, 'users', user.uid), {
             weeklyGoals: weeklyGoals
           }, { merge: true });
         } catch (err) {
           console.error("Error saving goals to cloud:", err);
+        } finally {
+          setTimeout(() => setIsSaving(false), 800);
         }
       }
     };
@@ -350,6 +359,9 @@ const App: React.FC = () => {
       return task;
     }));
 
+    // Show Star Rating Update (Always)
+    setShowStarOverlay(true);
+
     if (status === 'completed') {
       const hasRecentLog = moodLogs.some(log => Date.now() - log.timestamp < 1000 * 60 * 5); // 5 mins cooldown
       if (!hasRecentLog) {
@@ -370,7 +382,10 @@ const App: React.FC = () => {
       return task;
     }));
 
+    // Show Star Rating Update only on completion
     if (progress === 100) {
+      setShowStarOverlay(true);
+
       const hasRecentLog = moodLogs.some(log => Date.now() - log.timestamp < 1000 * 60 * 5);
       if (!hasRecentLog) {
         setMoodContext('completion');
@@ -434,6 +449,7 @@ const App: React.FC = () => {
       {/* Overlays */}
       {showCelebration && <CelebrationOverlay onClose={() => setShowCelebration(false)} />}
       {showStreakCelebration && <StreakCelebration streak={streak} onClose={() => setShowStreakCelebration(false)} />}
+      {showStarOverlay && <StarOverlay percentage={stats.completedPercent} onClose={() => setShowStarOverlay(false)} />}
       {showMoodTracker && (
         <MoodTrackerOverlay
           context={moodContext}
@@ -474,6 +490,7 @@ const App: React.FC = () => {
           onLogout={handleLogout}
           darkMode={darkMode}
           toggleTheme={toggleTheme}
+          isSaving={isSaving}
         />
 
         <div className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar">
